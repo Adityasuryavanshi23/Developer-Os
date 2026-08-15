@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: "1.75rem" }}>
         <h1 style={{ color: "#e2f0ff", fontSize: "1.6rem", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
-          Analytics
+          Analyticss
         </h1>
         <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.875rem", margin: "0.3rem 0 0" }}>
           Your learning progress at a glance
