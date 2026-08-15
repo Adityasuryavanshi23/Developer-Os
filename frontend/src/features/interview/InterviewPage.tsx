@@ -5,7 +5,7 @@ import {
   Plus, Trash2, ChevronDown, ChevronUp, Code2,
   Brain, MessageSquare, Filter, Loader2, CheckCircle2, Clock,
 } from "lucide-react"
-import { interviewService, type InterviewQuestion, type Difficulty, type InterviewType } from "./interview.service"
+import { interviewService, type Difficulty, type InterviewType } from "./interview.service"
 
 // ── Config ────────────────────────────────────────────────────────────────────
 

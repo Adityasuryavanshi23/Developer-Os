@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Trash2, ChevronDown, ChevronRight, BookOpen, Circle, Clock, CheckCircle2, Loader2, Library } from "lucide-react"
 import { skillService, topicService } from "./learning.service"
-import type { Skill, Topic } from "./learning.service"
+import type { Topic } from "./learning.service"
 import CurriculumModal from "./CurriculumModal"
 import TopicContentDrawer from "./TopicContentDrawer"
 
@@ -87,12 +87,6 @@ export default function LearningPage() {
   function handleAddTopic(skillId: string) {
     if (!newTopicName.trim()) return
     addTopic.mutate({ skillId, name: newTopicName.trim() })
-  }
-
-  const statusCycle: Record<Topic["status"], Topic["status"]> = {
-    NOT_STARTED: "IN_PROGRESS",
-    IN_PROGRESS: "COMPLETED",
-    COMPLETED: "NOT_STARTED",
   }
 
   // ── Render ───────────────────────────────────────────────────
