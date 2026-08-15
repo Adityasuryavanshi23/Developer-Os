@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# All .env files anywhere in project
+**/.env
+**/.env.local
+**/.env.*
+
+# Build outputs
+**/dist/
+**/build/
+**/generated/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/

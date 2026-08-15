@@ -1,0 +1,402 @@
+// DeveloperOS AI — Database Schema
+// Every model maps to one table in PostgreSQL (Neon)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+// The root of everything — every other table belongs to a user.
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hashed — never store plain text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  careerGoal          CareerGoal?
+  skills              Skill[]
+  topics              Topic[]
+  tasks               Task[]
+  studySessions       StudySession[]
+  revisions           Revision[]
+  notes               Note[]
+  quizAttempts        QuizAttempt[]
+  interviewAttempts   InterviewAttempt[]
+  notifications       Notification[]
+  analytics           Analytics[]
+  savedTopicContents  UserTopicContent[]
+
+  @@map("users")
+}
+
+// ─── CareerGoal ───────────────────────────────────────────────────────────────
+// What the user wants to become — drives AI recommendations.
+
+model CareerGoal {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  title       String  // e.g. "Frontend Developer", "Full Stack Developer"
+  description String? // optional extra context
+  targetDate  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("career_goals")
+}
+
+// ─── Skill ────────────────────────────────────────────────────────────────────
+// A broad skill area — e.g. "JavaScript", "React", "Node.js"
+
+model Skill {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  // 0-100 — AI updates this based on quiz/interview performance
+  level  Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topics Topic[]
+
+  @@unique([userId, name]) // user can't have two skills with the same name
+  @@map("skills")
+}
+
+// ─── Topic ────────────────────────────────────────────────────────────────────
+// A specific topic inside a skill — e.g. "Closures" inside "JavaScript"
+
+model Topic {
+  id       String      @id @default(cuid())
+  userId   String
+  skillId  String
+  name     String
+  status   TopicStatus @default(NOT_STARTED)
+  // 0-100 — updated after quizzes and revisions
+  mastery  Int         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  revisions Revision[]
+  notes     Note[]
+  quizzes   Quiz[]
+
+  @@map("topics")
+}
+
+// ─── TopicContent ─────────────────────────────────────────────────────────────
+// AI-generated (or pre-stored) learning content for a topic.
+// Cached forever — generated once, served instantly after.
+
+model TopicContent {
+  id        String   @id @default(cuid())
+  // topicName is the key — shared across all users (not per-user)
+  topicName String   @unique
+  skillName String   // parent skill for context
+
+  // Explanation in 3 languages
+  explanationEn  String  // English
+  explanationHi  String  // Hindi
+  explanationHl  String  // Hinglish
+
+  // Code example (language-agnostic, stored as string)
+  codeExample    String?
+
+  // Interview questions — stored as JSON array of strings
+  interviewQs    Json    // string[]
+
+  // Resources — stored as JSON array of {title, url}
+  resources      Json    // {title: string, url: string}[]
+
+  // YouTube videos — stored as JSON array of {title, channel, url, type}
+  youtubeVideos  Json    @default("[]")  // {title, channel, url, type: "indian"|"foreign"}[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("topic_content")
+}
+
+enum TopicStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ─── UserTopicContent ─────────────────────────────────────────────────────────
+// User's personally saved AI-generated content for a topic.
+// Max 10 per user per topic — user picks a title to identify each save.
+
+model UserTopicContent {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String
+  title     String   // user-given or AI-suggested title
+  content   Json     // full GeneratedContent object
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_topic_content")
+}
+
+// ─── Task ─────────────────────────────────────────────────────────────────────
+// Daily learning tasks — what the user needs to do today.
+
+model Task {
+  id          String     @id @default(cuid())
+  userId      String
+  topicId     String?    // optional — a task might not be tied to a specific topic
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  priority    Priority   @default(MEDIUM)
+  scheduledAt DateTime   // which day this task is for
+  completedAt DateTime?  // when the user actually completed it
+  // how many times this task was carried forward (missed)
+  carriedOver Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic         Topic?         @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  studySessions StudySession[]
+
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+  CARRIED_FORWARD
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ─── StudySession ─────────────────────────────────────────────────────────────
+// Tracks how long the user actually studied — feeds into analytics.
+
+model StudySession {
+  id         String    @id @default(cuid())
+  userId     String
+  taskId     String?
+  startedAt  DateTime
+  endedAt    DateTime?
+  // duration in minutes — calculated when session ends
+  durationMins Int?
+
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@map("study_sessions")
+}
+
+// ─── Revision ─────────────────────────────────────────────────────────────────
+// Spaced repetition schedule — Day 1 → 3 → 7 → 15 → 30 → 60
+
+model Revision {
+  id          String         @id @default(cuid())
+  userId      String
+  topicId     String
+  status      RevisionStatus @default(PENDING)
+  priority    Priority       @default(MEDIUM)
+  scheduledAt DateTime       // when this revision is due
+  completedAt DateTime?
+  // revision number — 1st, 2nd, 3rd revision of this topic
+  revisionNo  Int            @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("revisions")
+}
+
+enum RevisionStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+// ─── Note ─────────────────────────────────────────────────────────────────────
+// User's personal notes on a topic.
+
+model Note {
+  id      String @id @default(cuid())
+  userId  String
+  topicId String
+  content String // markdown supported
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+// ─── Quiz ─────────────────────────────────────────────────────────────────────
+// AI-generated quiz for a topic.
+
+model Quiz {
+  id       String @id @default(cuid())
+  topicId  String
+  question String
+  // JSON array of options e.g. ["A", "B", "C", "D"]
+  options  Json
+  answer   String // correct option
+
+  createdAt DateTime @default(now())
+
+  topic    Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  attempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+// ─── QuizAttempt ──────────────────────────────────────────────────────────────
+// Records each time a user attempts a quiz question.
+
+model QuizAttempt {
+  id        String  @id @default(cuid())
+  userId    String
+  quizId    String
+  answer    String  // what the user answered
+  isCorrect Boolean
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+// ─── InterviewQuestion ────────────────────────────────────────────────────────
+// Interview prep questions — can be AI-generated or manually added.
+
+model InterviewQuestion {
+  id         String            @id @default(cuid())
+  question   String
+  topic      String            // topic tag e.g. "JavaScript", "React"
+  difficulty Difficulty        @default(MEDIUM)
+  type       InterviewType     @default(CONCEPTUAL)
+
+  createdAt DateTime @default(now())
+
+  attempts InterviewAttempt[]
+
+  @@map("interview_questions")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum InterviewType {
+  CONCEPTUAL   // "What is closure?"
+  CODING       // "Write a function that..."
+  BEHAVIORAL   // "Tell me about a time when..."
+}
+
+// ─── InterviewAttempt ─────────────────────────────────────────────────────────
+// User's answer to an interview question + AI feedback + score.
+
+model InterviewAttempt {
+  id         String  @id @default(cuid())
+  userId     String
+  questionId String
+  answer     String  // user's written answer
+  // AI-generated feedback on the answer
+  aiFeedback String?
+  // 0-10 score given by AI
+  score      Int?
+
+  createdAt DateTime @default(now())
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("interview_attempts")
+}
+
+// ─── Notification ─────────────────────────────────────────────────────────────
+// All in-app notifications and reminders.
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  title   String
+  message String
+  isRead  Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  DAILY_REMINDER
+  REVISION_DUE
+  TASK_MISSED
+  STREAK_ALERT
+  INTERVIEW_REMINDER
+  RECOVERY_DAY
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+// Daily snapshot of user's progress — used for charts and reports.
+
+model Analytics {
+  id                 String   @id @default(cuid())
+  userId             String
+  date               DateTime // one record per user per day
+  tasksCompleted     Int      @default(0)
+  tasksTotal         Int      @default(0)
+  studyMins          Int      @default(0)
+  revisionsCompleted Int      @default(0)
+  quizScore          Int?     // average quiz score for the day (0-100)
+  streakDay          Int      @default(0) // current streak count
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date]) // one record per user per day
+  @@map("analytics")
+}
