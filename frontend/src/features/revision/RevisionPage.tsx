@@ -5,7 +5,7 @@ import {
   CheckCircle2, SkipForward, Trash2, Plus, Brain,
   Loader2, Clock, ChevronDown, ChevronUp, Filter,
 } from "lucide-react"
-import { revisionService, type Revision } from "./revision.service"
+import { revisionService } from "./revision.service"
 import { skillService, topicService } from "../learning/learning.service"
 
 // ── Priority config ─────────────────────────────────────────────────────────

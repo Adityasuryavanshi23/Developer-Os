@@ -36,7 +36,7 @@ export const taskService = {
 
   update: async (
     id: string,
-    data: Partial<{ title: string; description: string; priority: string; scheduledAt: string }>
+    data: Partial<{ title: string; description: string; priority: string; scheduledAt: string; status: string }>
   ): Promise<Task> => {
     const res = await api.patch(`/tasks/${id}`, data)
     return res.data.data

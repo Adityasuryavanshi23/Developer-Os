@@ -15,13 +15,6 @@ import AnalyticsPage from "./features/analytics/AnalyticsPage"
 import SettingsPage from "./features/settings/SettingsPage"
 import InterviewPage from "./features/interview/InterviewPage"
 
-// Placeholder pages — will be built one by one
-const ComingSoon = ({ name }: { name: string }) => (
-  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.9rem", padding: "2rem" }}>
-    {name} — coming soon
-  </div>
-)
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, staleTime: 1000 * 60 * 5 },

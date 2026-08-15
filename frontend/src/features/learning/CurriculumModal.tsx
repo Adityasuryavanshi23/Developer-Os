@@ -2,7 +2,7 @@ import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, ChevronRight, ChevronLeft, CheckCircle2, Circle, Loader2, Search } from "lucide-react"
-import { curriculumService, type CurriculumSummary, type CurriculumTopic, type Level } from "./curriculum.service"
+import { curriculumService, type CurriculumSummary, type Level } from "./curriculum.service"
 
 // ── Level config ──────────────────────────────────────────────────────────────
 const LEVEL_META: Record<Level, { label: string; color: string; bg: string; border: string }> = {
