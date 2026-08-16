@@ -18,9 +18,21 @@ app.set("trust proxy", 1)
 app.use(helmet())
 
 // Only accept requests from our frontend
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  env.CLIENT_URL,
+].filter(Boolean) as string[]
+
 app.use(
   cors({
-    origin: env.CLIENT_URL ?? "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`))
+      }
+    },
     credentials: true,
   })
 )
