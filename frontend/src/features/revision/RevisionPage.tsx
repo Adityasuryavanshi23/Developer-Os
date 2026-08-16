@@ -180,33 +180,39 @@ export default function RevisionPage() {
           </div>
           <motion.button
             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => { setShowForm(true); setFormError("") }}
+            onClick={() => { setShowForm(!showForm); setFormError("") }}
             style={{
               display: "flex", alignItems: "center", gap: "0.5rem",
-              background: "linear-gradient(90deg, #7c3aed, #a78bfa)",
+              background: showForm ? "rgba(124,58,237,0.15)" : "linear-gradient(90deg, #7c3aed, #a78bfa)",
               border: "1px solid rgba(167,139,250,0.35)",
               color: "#fff", borderRadius: 8, padding: "0.5rem 1.1rem",
               fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
               whiteSpace: "nowrap",
             }}
           >
-            <Plus size={15} />
-            Add Revision
+            <Plus size={15} style={{ transform: showForm ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} />
+            {showForm ? "Cancel" : "Add Revision"}
           </motion.button>
         </div>
 
-        {/* Stats bar */}
-        <div style={{
-          display: "flex", gap: "1.5rem", flexWrap: "wrap",
-          padding: "0.75rem 1rem",
-          background: "rgba(0,10,30,0.5)",
-          border: "1px solid rgba(167,139,250,0.1)",
-          borderRadius: 8,
-        }}>
-          <StatPill label="Due today" value={dueCount}     color="#f59e0b" />
-          <StatPill label="Pending"   value={pendingCount} color="#a78bfa" />
-          <StatPill label="Completed" value={doneCount}    color="#4ade80" />
-          <StatPill label="Total"     value={revisions.length} />
+        {/* Stats cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.75rem" }}>
+          {[
+            { label: "Due Today",  value: dueCount,          color: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.2)"   },
+            { label: "Pending",    value: pendingCount,       color: "#a78bfa", bg: "rgba(167,139,250,0.08)",  border: "rgba(167,139,250,0.2)"  },
+            { label: "Completed",  value: doneCount,          color: "#4ade80", bg: "rgba(74,222,128,0.08)",   border: "rgba(74,222,128,0.2)"   },
+            { label: "Total",      value: revisions.length,   color: "#00c8ff", bg: "rgba(0,200,255,0.08)",    border: "rgba(0,200,255,0.2)"    },
+          ].map((s) => (
+            <div key={s.label} style={{
+              background: s.bg,
+              border: `1px solid ${s.border}`,
+              borderRadius: 10, padding: "0.85rem 1rem",
+              display: "flex", flexDirection: "column", gap: "0.25rem",
+            }}>
+              <span style={{ color: s.color, fontSize: "1.5rem", fontWeight: 700, lineHeight: 1 }}>{s.value}</span>
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem" }}>{s.label}</span>
+            </div>
+          ))}
         </div>
       </motion.div>
 
@@ -218,45 +224,63 @@ export default function RevisionPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              background: "rgba(0,10,30,0.75)",
+              background: "rgba(10,15,40,0.9)",
               border: "1px solid rgba(167,139,250,0.25)",
-              borderRadius: 10, padding: "1.25rem",
-              marginBottom: "1rem",
+              borderRadius: 12, padding: "1.25rem",
+              marginBottom: "1.25rem",
             }}
           >
-            <div style={{ color: "#e2f0ff", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.85rem" }}>
+            <div style={{ color: "#a78bfa", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1rem" }}>
               Schedule Revision
             </div>
 
-            {/* Topic selector */}
-            <select
-              value={form.topicId}
-              onChange={(e) => setForm((f) => ({ ...f, topicId: e.target.value }))}
-              style={{ ...inputStyle, colorScheme: "dark" }}
-            >
-              <option value="">— Select a topic —</option>
-              {topicsBySkill.map(({ skill, topics: tList }) => (
-                <optgroup key={skill.id} label={skill.name} style={{ color: "#a78bfa" }}>
-                  {tList.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            {/* Topic selector — custom styled */}
+            <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+              <select
+                value={form.topicId}
+                onChange={(e) => setForm((f) => ({ ...f, topicId: e.target.value }))}
+                style={{
+                  width: "100%", height: 42,
+                  background: "rgba(0,10,30,0.8)",
+                  border: `1px solid ${form.topicId ? "rgba(167,139,250,0.4)" : "rgba(255,255,255,0.1)"}`,
+                  borderRadius: 8, padding: "0 2rem 0 0.9rem",
+                  color: form.topicId ? "#e2f0ff" : "rgba(255,255,255,0.3)",
+                  fontSize: "0.85rem", outline: "none",
+                  cursor: "pointer", appearance: "none",
+                  colorScheme: "dark",
+                  transition: "border-color 0.15s",
+                }}
+              >
+                <option value="" style={{ background: "#0d1b35", color: "rgba(255,255,255,0.4)" }}>— Select a topic —</option>
+                {topicsBySkill.map(({ skill, topics: tList }) => (
+                  <optgroup key={skill.id} label={skill.name} style={{ background: "#0d1b35", color: "#a78bfa", fontWeight: 700 }}>
+                    {tList.map((t) => (
+                      <option key={t.id} value={t.id} style={{ background: "#0d1b35", color: "#e2f0ff" }}>{t.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              {/* Custom arrow */}
+              <div style={{
+                position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                color: "rgba(255,255,255,0.3)", pointerEvents: "none",
+              }}>▾</div>
+            </div>
 
-            {/* Priority + Date */}
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-              <div style={{ display: "flex", gap: "0.35rem" }}>
+            {/* Priority + Date row */}
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+              {/* Priority pills */}
+              <div style={{ display: "flex", gap: "0.35rem", flex: 1, flexWrap: "wrap" }}>
                 {PRIORITIES.map((p) => (
                   <button
                     key={p.key}
                     onClick={() => setForm((f) => ({ ...f, priority: p.key }))}
                     style={{
-                      padding: "0.3rem 0.7rem", borderRadius: 20,
-                      border: `1px solid ${form.priority === p.key ? p.border : "rgba(255,255,255,0.08)"}`,
-                      background: form.priority === p.key ? p.bg : "rgba(255,255,255,0.02)",
-                      color: form.priority === p.key ? p.color : "rgba(255,255,255,0.25)",
-                      fontSize: "0.72rem", fontWeight: form.priority === p.key ? 600 : 400,
+                      padding: "0.3rem 0.75rem", borderRadius: 20,
+                      border: `1px solid ${form.priority === p.key ? p.border : "rgba(255,255,255,0.07)"}`,
+                      background: form.priority === p.key ? p.bg : "transparent",
+                      color: form.priority === p.key ? p.color : "rgba(255,255,255,0.2)",
+                      fontSize: "0.72rem", fontWeight: form.priority === p.key ? 700 : 400,
                       cursor: "pointer", transition: "all 0.15s",
                     }}
                   >
@@ -264,39 +288,61 @@ export default function RevisionPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Date */}
               <input
                 type="date"
                 value={form.scheduledAt}
                 onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))}
-                style={{ ...inputStyle, height: 36, fontSize: "0.8rem", flex: "0 0 auto", width: "auto", colorScheme: "dark" }}
+                style={{
+                  height: 38, background: "rgba(0,10,30,0.8)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 8, padding: "0 0.75rem",
+                  color: "#e2f0ff", fontSize: "0.8rem",
+                  outline: "none", colorScheme: "dark",
+                  cursor: "pointer",
+                }}
               />
             </div>
 
-            {formError && <p style={{ color: "#fca5a5", fontSize: "0.78rem", margin: "0.5rem 0 0" }}>▸ {formError}</p>}
+            {formError && (
+              <div style={{
+                marginTop: "0.75rem",
+                background: "rgba(248,113,113,0.08)",
+                border: "1px solid rgba(248,113,113,0.25)",
+                borderRadius: 6, padding: "0.5rem 0.75rem",
+                color: "#fca5a5", fontSize: "0.78rem",
+              }}>
+                {formError}
+              </div>
+            )}
 
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.85rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
               <button
                 onClick={() => createRevision.mutate()}
                 disabled={createRevision.isPending || !form.topicId}
                 style={{
-                  background: "linear-gradient(90deg, #7c3aed, #a78bfa)",
+                  background: !form.topicId ? "rgba(167,139,250,0.1)" : "linear-gradient(90deg, #7c3aed, #a78bfa)",
                   border: "1px solid rgba(167,139,250,0.3)",
-                  color: "#fff", borderRadius: 6,
-                  padding: "0 1rem", height: 36,
+                  color: !form.topicId ? "rgba(255,255,255,0.2)" : "#fff",
+                  borderRadius: 8, padding: "0 1.25rem", height: 38,
                   fontSize: "0.82rem", fontWeight: 600,
                   cursor: createRevision.isPending || !form.topicId ? "not-allowed" : "pointer",
-                  opacity: createRevision.isPending || !form.topicId ? 0.6 : 1,
+                  display: "flex", alignItems: "center", gap: "0.4rem",
+                  transition: "all 0.15s",
                 }}
               >
-                {createRevision.isPending ? "Scheduling..." : "Schedule"}
+                {createRevision.isPending && <Loader2 size={13} style={{ animation: "spin 0.8s linear infinite" }} />}
+                {createRevision.isPending ? "Scheduling..." : "Schedule Revision"}
               </button>
               <button
                 onClick={() => { setShowForm(false); setFormError("") }}
                 style={{
-                  background: "none", border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.35)", borderRadius: 6,
-                  padding: "0 0.75rem", height: 36,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.3)", borderRadius: 8,
+                  padding: "0 0.85rem", height: 38,
                   fontSize: "0.82rem", cursor: "pointer",
+                  transition: "all 0.15s",
                 }}
               >
                 Cancel
