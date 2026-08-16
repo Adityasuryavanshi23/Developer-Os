@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { motion } from "framer-motion"
+import { HiEye, HiEyeOff } from "react-icons/hi"
 import { authService } from "./auth.service"
 import { useAuthStore } from "./auth.store"
 import AnimatedBg from "@/components/AnimatedBg"
@@ -194,6 +195,10 @@ export default function RegisterPage() {
 function CyberField({ label, type, placeholder, reg, error }: {
   label: string; type: string; placeholder: string; reg: object; error?: string
 }) {
+  const [show, setShow] = useState(false)
+  const isPassword = type === "password"
+  const inputType = isPassword ? (show ? "text" : "password") : type
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
       <label style={{
@@ -202,29 +207,49 @@ function CyberField({ label, type, placeholder, reg, error }: {
       }}>
         {label}
       </label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        {...reg}
-        style={{
-          background: "rgba(0,20,50,0.6)",
-          border: "1px solid rgba(0,200,255,0.2)",
-          borderRadius: 3, height: 42, padding: "0 0.9rem",
-          color: "#e2f0ff", fontSize: "0.88rem",
-          outline: "none", width: "100%",
-          boxSizing: "border-box" as const,
-          fontFamily: "monospace",
-          transition: "border-color 0.2s, box-shadow 0.2s",
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = "rgba(0,200,255,0.7)"
-          e.currentTarget.style.boxShadow = "0 0 10px rgba(0,200,255,0.15)"
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = "rgba(0,200,255,0.2)"
-          e.currentTarget.style.boxShadow = "none"
-        }}
-      />
+      <div style={{ position: "relative" }}>
+        <input
+          type={inputType}
+          placeholder={placeholder}
+          {...reg}
+          style={{
+            background: "rgba(0,20,50,0.6)",
+            border: "1px solid rgba(0,200,255,0.2)",
+            borderRadius: 3, height: 42,
+            padding: isPassword ? "0 2.4rem 0 0.9rem" : "0 0.9rem",
+            color: "#e2f0ff", fontSize: "0.88rem",
+            outline: "none", width: "100%",
+            boxSizing: "border-box" as const,
+            fontFamily: "monospace",
+            transition: "border-color 0.2s, box-shadow 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "rgba(0,200,255,0.7)"
+            e.currentTarget.style.boxShadow = "0 0 10px rgba(0,200,255,0.15)"
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "rgba(0,200,255,0.2)"
+            e.currentTarget.style.boxShadow = "none"
+          }}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            style={{
+              position: "absolute", right: "0.7rem", top: "50%",
+              transform: "translateY(-50%)",
+              background: "none", border: "none", cursor: "pointer",
+              color: "rgba(0,200,255,0.5)", padding: 0, display: "flex",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#00c8ff")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,200,255,0.5)")}
+          >
+            {show ? <HiEyeOff size={17} /> : <HiEye size={17} />}
+          </button>
+        )}
+      </div>
       {error && (
         <span style={{ color: "#fca5a5", fontSize: "0.75rem", fontFamily: "monospace" }}>▸ {error}</span>
       )}
