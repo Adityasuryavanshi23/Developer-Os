@@ -39,7 +39,7 @@ export async function changePasswordHandler(req: Request, res: Response, next: N
     const input = z.object({
       currentPassword: z.string().min(1),
       newPassword: z.string().min(6, "New password must be at least 6 characters"),
-    }).parse(req.body)
+    }).parse(req.body) as { currentPassword: string; newPassword: string }
     await changePassword(req.userId!, input)
     res.json({ success: true, message: "Password changed successfully" })
   } catch (err) { next(err) }
