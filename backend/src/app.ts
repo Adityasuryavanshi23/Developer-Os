@@ -9,6 +9,9 @@ import router from "./routes/index"
 
 const app = express()
 
+// Trust Render's proxy (required for express-rate-limit on Render)
+app.set("trust proxy", 1)
+
 // ─── Security ──────────────────────────────────────────────────────────────
 
 // helmet sets secure HTTP headers (XSS protection, no sniff, etc.)
