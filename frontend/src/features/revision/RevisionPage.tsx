@@ -138,7 +138,7 @@ export default function RevisionPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["revisions"] }),
   })
 
-  // ── Filtered list ──────────────────────────────────────────────────────────
+  // ── Filtered list ─────────────────────────────────────────────────────
 
   const now = new Date()
   now.setHours(23, 59, 59, 999)
@@ -661,10 +661,4 @@ function EmptyState({ filter, onAdd }: { filter: string; onAdd: () => void }) {
   )
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", background: "rgba(0,20,50,0.6)",
-  border: "1px solid rgba(167,139,250,0.2)",
-  borderRadius: 6, height: 42, padding: "0 0.9rem",
-  color: "#e2f0ff", fontSize: "0.875rem", outline: "none",
-  boxSizing: "border-box",
-}
+
