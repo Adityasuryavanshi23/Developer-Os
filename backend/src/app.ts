@@ -17,7 +17,7 @@ app.use(helmet())
 // Only accept requests from our frontend
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: env.CLIENT_URL ?? "http://localhost:5173",
     credentials: true,
   })
 )
