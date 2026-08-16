@@ -20,7 +20,6 @@ app.use(helmet())
 // Only accept requests from our frontend
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:3000",
   env.CLIENT_URL,
 ].filter(Boolean) as string[]
 
