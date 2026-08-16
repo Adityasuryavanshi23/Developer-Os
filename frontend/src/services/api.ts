@@ -17,10 +17,13 @@ api.interceptors.request.use((config) => {
 })
 
 // If the server returns 401 (token expired / invalid), clear storage and redirect to login
+// Exception: /auth/login and /auth/register — 401 there means wrong credentials, not expired session
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url: string = error.config?.url ?? ""
+    const isAuthRoute = url.includes("/auth/login") || url.includes("/auth/register")
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem("token")
       window.location.href = "/login"
     }
