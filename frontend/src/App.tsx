@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { Toaster } from "sonner"
 
 import ProtectedRoute from "./components/ProtectedRoute"
 import GuestRoute from "./components/GuestRoute"
@@ -52,8 +53,34 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
-        </Routes>
+        </Routes> 
       </BrowserRouter>
+      <Toaster
+        position="top-right"
+        duration={3500}
+        gap={12}
+        toastOptions={{
+          style: {
+            background: "linear-gradient(135deg, rgba(0,8,24,0.97) 0%, rgba(0,20,50,0.97) 100%)",
+            border: "1px solid rgba(0,200,255,0.55)",
+            color: "#e2f0ff",
+            fontFamily: "monospace",
+            fontSize: "0.85rem",
+            fontWeight: 500,
+            borderRadius: "8px",
+            backdropFilter: "blur(28px)",
+            WebkitBackdropFilter: "blur(28px)",
+            boxShadow: [
+              "0 0 0 1px rgba(0,200,255,0.12)",
+              "0 0 40px rgba(0,200,255,0.18)",
+              "0 20px 60px rgba(0,0,0,0.7)",
+              "inset 0 1px 0 rgba(0,200,255,0.15)",
+            ].join(", "),
+            padding: "1rem 1.1rem",
+            minWidth: "320px",
+          },
+        }}
+      />
     </QueryClientProvider>
   )
 }

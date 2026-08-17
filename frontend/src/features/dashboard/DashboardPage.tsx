@@ -1,8 +1,11 @@
+import { useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { CheckCircle2, Circle, Target, Zap, Clock, BookOpen } from "lucide-react"
 import { taskService } from "../tasks/task.service"
-import { skillService } from "../learning/learning.service"
+import { skillService, topicService, careerGoalService } from "../learning/learning.service"
+import { revisionService } from "../revision/revision.service"
+import { analyticsService } from "../analytics/analytics.service"
 import { useAuthStore } from "../auth/auth.store"
 
 export default function DashboardPage() {
@@ -14,10 +17,36 @@ export default function DashboardPage() {
     queryFn: taskService.getToday,
   })
 
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ["tasks", "all"],
+    queryFn: taskService.getAll,
+  })
+
   const { data: skills = [] } = useQuery({
     queryKey: ["skills"],
     queryFn: skillService.getAll,
   })
+
+  const { data: topics = [] } = useQuery({
+    queryKey: ["topics"],
+    queryFn: topicService.getAll,
+  })
+
+  const { data: careerGoal = null } = useQuery({
+    queryKey: ["career-goal"],
+    queryFn: careerGoalService.get,
+  })
+
+  const { data: revisions = [] } = useQuery({
+    queryKey: ["revisions"],
+    queryFn: revisionService.getAll,
+  })
+
+  const { data: analytics = null } = useQuery({
+    queryKey: ["analytics"],
+    queryFn: analyticsService.get,
+  })
+
 
   const completeMutation = useMutation({
     mutationFn: taskService.complete,

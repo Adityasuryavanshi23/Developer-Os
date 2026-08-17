@@ -8,6 +8,8 @@ import { HiEye, HiEyeOff } from "react-icons/hi"
 import { authService } from "./auth.service"
 import { useAuthStore } from "./auth.store"
 import AnimatedBg from "@/components/AnimatedBg"
+import { toast } from "sonner"
+
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -32,6 +34,9 @@ export default function LoginPage() {
     try {
       const result = await authService.login(data)
       setAuth(result.user, result.token)
+      toast.success(`Welcome back, ${result.user.name.split(" ")[0]}!`, {
+        description: "You are now logged in.",
+      })
       navigate("/dashboard")
     } catch (err: unknown) {
       const message =
@@ -55,6 +60,7 @@ export default function LoginPage() {
       backgroundSize: "cover",
       backgroundPosition: "center",
     }}>
+    
 
       {/* Layer 2 — dark overlay to dim the image */}
       <div style={{

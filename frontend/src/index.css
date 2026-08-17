@@ -295,3 +295,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Sonner toast — cyberpunk theme overrides ───────────────── */
+
+[data-sonner-toast] {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* left accent bar */
+[data-sonner-toast]::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0; left: 0; bottom: 0 !important;
+  width: 3px !important;
+  background: linear-gradient(180deg, #00c8ff, rgba(0,200,255,0.3)) !important;
+  border-radius: 8px 0 0 8px !important;
+}
+
+/* top shimmer line */
+[data-sonner-toast]::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0; left: 0; right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(0,200,255,0.6), transparent) !important;
+}
+
+/* icon — bright cyan glow */
+[data-sonner-toast] [data-icon] svg {
+  color: #00c8ff !important;
+  filter: drop-shadow(0 0 5px rgba(0,200,255,0.9)) !important;
+}
+
+/* title */
+[data-sonner-toast] [data-title] {
+  color: #ffffff !important;
+  font-family: monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 0 10px rgba(0,200,255,0.35) !important;
+}
+
+/* description */
+[data-sonner-toast] [data-description] {
+  color: rgba(0, 200, 255, 0.65) !important;
+  font-family: monospace !important;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  margin-top: 0.2rem !important;
+  letter-spacing: 0.03em !important;
+}

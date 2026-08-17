@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { motion } from "framer-motion"
 import { HiEye, HiEyeOff } from "react-icons/hi"
+import { toast } from "sonner"
 import { authService } from "./auth.service"
 import { useAuthStore } from "./auth.store"
 import AnimatedBg from "@/components/AnimatedBg"
@@ -44,6 +45,9 @@ export default function RegisterPage() {
       })
       // Pass onboarding=true so GuestRoute doesn't redirect to /dashboard
       setAuth(result.user, result.token, true)
+      toast.success(`Welcome, ${result.user.name.split(" ")[0]}!`, {
+        description: "Account created. Let's set up your profile.",
+      })
       navigate("/onboarding", { replace: true })
     } catch (err: unknown) {
       const message =

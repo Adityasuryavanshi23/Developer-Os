@@ -15,10 +15,14 @@ export default function ProtectedRoute() {
     // If we have a token but no user object (e.g. after page refresh), refetch /me
     if (isAuthenticated && !user && token) {
       authService.getMe()
-        .then((me) => setAuth(me, token))
+        .then((me) => {
+          setAuth(me, token)
+        })
         .catch(() => {/* token expired — api interceptor will redirect to /login */})
     }
   }, [isAuthenticated, user, token, setAuth])
+
+
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />

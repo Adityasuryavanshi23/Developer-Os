@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { useAuthStore } from "../features/auth/auth.store"
 import {
   LayoutDashboard, BookOpen, CheckSquare,
@@ -50,7 +51,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const { user, clearAuth } = useAuthStore()
 
   function handleLogout() {
+    const name = user?.name?.split(" ")[0] ?? "User"
     clearAuth()
+    toast.info(`Goodbye, ${name}!`, { description: "You have been signed out." })
     navigate("/login", { replace: true })
   }
 

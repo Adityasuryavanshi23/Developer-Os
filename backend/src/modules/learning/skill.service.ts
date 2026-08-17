@@ -3,13 +3,22 @@ import { AppError } from "../../middleware/errorHandler"
 import type { CreateSkillInput, UpdateSkillInput } from "./skill.schema"
 
 export async function getAllSkills(userId: string) {
-  return prisma.skill.findMany({
+  const skills = await prisma.skill.findMany({
     where: { userId },
     include: {
-      // include topic count so the frontend can show "5 topics" without a separate request
       _count: { select: { topics: true } },
+      topics: { select: { status: true } },
     },
     orderBy: { createdAt: "asc" },
+  })
+
+  // Calculate completion percentage from topics: COMPLETED / total * 100
+  return skills.map((skill) => {
+    const total = skill.topics.length
+    const completed = skill.topics.filter((t) => t.status === "COMPLETED").length
+    const level = total > 0 ? Math.round((completed / total) * 100) : 0
+    const { topics: _, ...rest } = skill
+    return { ...rest, level }
   })
 }
 
