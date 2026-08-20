@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -142,23 +143,34 @@ export default function TasksPage() {
       setForm({ title: "", description: "", priority: "MEDIUM", scheduledAt: todayDateString() })
       setShowForm(false)
       setFormError("")
+      toast.success("Task created", { description: form.title.trim() })
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setFormError(msg ?? "Failed to create task")
+      toast.error("Failed to create task", { description: msg })
     },
   })
 
   const completeTask = useMutation({
     mutationFn: taskService.complete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      toast.success("Task completed!")
+    },
+    onError: () => toast.error("Failed to complete task"),
   })
 
   // For undo-complete, mark-in-progress, and priority change
   const updateTask = useMutation({
     mutationFn: ({ id, status, priority }: { id: string; status?: Task["status"]; priority?: Task["priority"] }) =>
       taskService.update(id, { status, priority }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      if (vars.priority) toast.success("Priority updated")
+      if (vars.status)   toast.success("Status updated")
+    },
+    onError: () => toast.error("Failed to update task"),
   })
 
   const rescheduleTask = useMutation({
@@ -167,12 +179,18 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
       setReschedulingId(null)
+      toast.success("Task rescheduled")
     },
+    onError: () => toast.error("Failed to reschedule task"),
   })
 
   const deleteTask = useMutation({
     mutationFn: taskService.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      toast.success("Task deleted")
+    },
+    onError: () => toast.error("Failed to delete task"),
   })
 
   // ── Filtered tasks ─────────────────────────────────────────────────────────

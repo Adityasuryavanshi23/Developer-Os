@@ -34,6 +34,9 @@ model User {
   notifications       Notification[]
   analytics           Analytics[]
   savedTopicContents  UserTopicContent[]
+  routines            Routine[]
+  routineCompletions  RoutineCompletion[]
+  routineStreak       RoutineStreak?
 
   @@map("users")
 }
@@ -399,4 +402,119 @@ model Analytics {
 
   @@unique([userId, date]) // one record per user per day
   @@map("analytics")
+}
+
+// ─── Routine ──────────────────────────────────────────────────────────────────
+// The user's overall daily routine — one active routine per user.
+
+model Routine {
+  id       String @id @default(cuid())
+  userId   String
+  name     String @default("My Routine")
+  // IANA timezone string e.g. "Asia/Kolkata"
+  timezone String @default("Asia/Kolkata")
+  active   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities RoutineActivity[]
+
+  @@map("routines")
+}
+
+// ─── RoutineActivity ──────────────────────────────────────────────────────────
+// A single activity inside a routine — e.g. "Gym 07:00–08:00 Mon/Wed/Fri"
+
+model RoutineActivity {
+  id         String           @id @default(cuid())
+  routineId  String
+  name       String
+  category   RoutineCategory  @default(PERSONAL)
+  // "HH:MM" 24-hour string e.g. "07:30"
+  startTime  String
+  endTime    String
+  // Days as JSON array e.g. ["MON","WED","FRI"]
+  repeatDays Json
+  type       ActivityType     @default(FLEXIBLE)
+  priority   Priority         @default(MEDIUM)
+  // optional free-text goal description
+  goalNote   String?
+  active     Boolean          @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routine     Routine            @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  completions RoutineCompletion[]
+
+  @@map("routine_activities")
+}
+
+enum RoutineCategory {
+  LEARNING
+  WORK
+  COLLEGE
+  FITNESS
+  HEALTH
+  PERSONAL
+  FAMILY
+  TRAVEL
+  REST
+  CUSTOM
+}
+
+enum ActivityType {
+  FIXED     // cannot be moved (office, college, sleep)
+  FLEXIBLE  // can be rescheduled (gym, study, revision)
+}
+
+// ─── RoutineCompletion ────────────────────────────────────────────────────────
+// One record per activity per day — tracks what the user actually did.
+
+model RoutineCompletion {
+  id          String           @id @default(cuid())
+  activityId  String
+  userId      String
+  // date only — stored as midnight UTC for the local date
+  date        DateTime
+  status      CompletionStatus @default(PENDING)
+  completedAt DateTime?
+  // optional note if skipped/rescheduled
+  note        String?
+
+  createdAt DateTime @default(now())
+
+  activity RoutineActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // one completion record per activity per day
+  @@unique([activityId, date])
+  @@map("routine_completions")
+}
+
+enum CompletionStatus {
+  PENDING
+  DONE
+  SKIPPED
+  MISSED
+}
+
+// ─── RoutineStreak ────────────────────────────────────────────────────────────
+// Tracks the user's daily consistency streak.
+
+model RoutineStreak {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  currentStreak     Int       @default(0)
+  longestStreak     Int       @default(0)
+  // last date the user hit the completion threshold (>=80%)
+  lastSuccessfulDay DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("routine_streaks")
 }

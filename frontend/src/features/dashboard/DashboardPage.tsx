@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { CheckCircle2, Circle, Target, Zap, Clock, BookOpen } from "lucide-react"
@@ -17,7 +16,7 @@ export default function DashboardPage() {
     queryFn: taskService.getToday,
   })
 
-  const { data: allTasks = [] } = useQuery({
+  const { data: _allTasks = [] } = useQuery({
     queryKey: ["tasks", "all"],
     queryFn: taskService.getAll,
   })
@@ -27,22 +26,22 @@ export default function DashboardPage() {
     queryFn: skillService.getAll,
   })
 
-  const { data: topics = [] } = useQuery({
+  const { data: _topics = [] } = useQuery({
     queryKey: ["topics"],
     queryFn: topicService.getAll,
   })
 
-  const { data: careerGoal = null } = useQuery({
+  const { data: _careerGoal = null } = useQuery({
     queryKey: ["career-goal"],
     queryFn: careerGoalService.get,
   })
 
-  const { data: revisions = [] } = useQuery({
+  const { data: _revisions = [] } = useQuery({
     queryKey: ["revisions"],
     queryFn: revisionService.getAll,
   })
 
-  const { data: analytics = null } = useQuery({
+  const { data: _analytics = null } = useQuery({
     queryKey: ["analytics"],
     queryFn: analyticsService.get,
   })

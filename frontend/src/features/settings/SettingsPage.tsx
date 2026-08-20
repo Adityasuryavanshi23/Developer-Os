@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { toast } from "sonner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { User, Lock, Target, Trash2, CheckCircle2, Loader2, AlertTriangle } from "lucide-react"
@@ -61,13 +62,15 @@ export default function SettingsPage() {
   const updateProfile = useMutation({
     mutationFn: () => settingsService.updateProfile(name.trim()),
     onSuccess: (updated) => {
-      setAuth(updated, token!)         // update Zustand store → sidebar refreshes
+      setAuth(updated, token!)
       setProfileMsg({ type: "success", text: "Name updated successfully!" })
       setTimeout(() => setProfileMsg(null), 3000)
+      toast.success("Profile updated!")
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setProfileMsg({ type: "error", text: msg ?? "Failed to update profile" })
+      toast.error("Failed to update profile", { description: msg })
     },
   })
 
@@ -81,10 +84,12 @@ export default function SettingsPage() {
       setPwForm({ current: "", newPw: "", confirm: "" })
       setPwMsg({ type: "success", text: "Password changed successfully!" })
       setTimeout(() => setPwMsg(null), 3000)
+      toast.success("Password changed!")
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setPwMsg({ type: "error", text: msg ?? "Failed to change password" })
+      toast.error("Failed to change password", { description: msg })
     },
   })
 
@@ -124,10 +129,12 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["career-goal"] })
       setGoalMsg({ type: "success", text: "Career goal updated!" })
       setTimeout(() => setGoalMsg(null), 3000)
+      toast.success("Career goal updated!")
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setGoalMsg({ type: "error", text: msg ?? "Failed to update career goal" })
+      toast.error("Failed to update career goal", { description: msg })
     },
   })
 

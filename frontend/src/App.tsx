@@ -15,6 +15,7 @@ import RevisionPage from "./features/revision/RevisionPage"
 import AnalyticsPage from "./features/analytics/AnalyticsPage"
 import SettingsPage from "./features/settings/SettingsPage"
 import InterviewPage from "./features/interview/InterviewPage"
+import RoutinePage from "./features/routine/RoutinePage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,7 @@ export default function App() {
               <Route path="/analytics"  element={<AnalyticsPage />} />
               <Route path="/interview"  element={<InterviewPage />} />
               <Route path="/settings"   element={<SettingsPage />} />
+              <Route path="/routine"    element={<RoutinePage />} />
             </Route>
           </Route>
 

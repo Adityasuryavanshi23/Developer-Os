@@ -8,6 +8,7 @@ import analyticsRoutes from "../modules/analytics/analytics.routes"
 import interviewRoutes from "../modules/interview/interview.routes"
 import curriculumRoutes from "../modules/curriculum/curriculum.routes"
 import topicContentRoutes from "../modules/topic-content/topicContent.routes"
+import routineRoutes from "../modules/routine/routine.routes"
 
 // Main router — all API routes are mounted here under /api prefix
 const router = Router()
@@ -21,5 +22,6 @@ router.use("/analytics", analyticsRoutes)
 router.use("/interview", interviewRoutes)
 router.use("/curriculum", curriculumRoutes)
 router.use("/topic-content", topicContentRoutes)
+router.use("/routine", routineRoutes)
 
 export default router

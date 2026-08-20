@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -78,16 +79,22 @@ export default function InterviewPage() {
       setForm({ question: "", topic: "", difficulty: "MEDIUM", type: "CONCEPTUAL" })
       setShowAddForm(false)
       setFormErr("")
+      toast.success("Question added")
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setFormErr(msg ?? "Failed to add question")
+      toast.error("Failed to add question", { description: msg })
     },
   })
 
   const deleteQuestion = useMutation({
     mutationFn: interviewService.deleteQuestion,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["interview-questions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interview-questions"] })
+      toast.success("Question deleted")
+    },
+    onError: () => toast.error("Failed to delete question"),
   })
 
   const submitAttempt = useMutation({
@@ -98,12 +105,18 @@ export default function InterviewPage() {
       queryClient.invalidateQueries({ queryKey: ["interview-questions"] })
       setAnsweringId(null)
       setAnswerText("")
+      toast.success("Answer submitted!")
     },
+    onError: () => toast.error("Failed to submit answer"),
   })
 
   const deleteAttempt = useMutation({
     mutationFn: interviewService.deleteAttempt,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["interview-attempts"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interview-attempts"] })
+      toast.success("Attempt deleted")
+    },
+    onError: () => toast.error("Failed to delete attempt"),
   })
 
   // ── Filtered questions ────────────────────────────────────────────────────

@@ -18,6 +18,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Markdown files
+*.md
+
 # Editor
 .vscode/*
 !.vscode/extensions.json

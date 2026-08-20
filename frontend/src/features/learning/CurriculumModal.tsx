@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, ChevronRight, ChevronLeft, CheckCircle2, Circle, Loader2, Search } from "lucide-react"
@@ -86,12 +87,13 @@ export default function CurriculumModal({ onClose }: Props) {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["skills"] })
       queryClient.invalidateQueries({ queryKey: ["topics"] })
-      setSuccess(
-        `✅ ${result.imported} topic${result.imported !== 1 ? "s" : ""} added to "${selectedSkill!.skill}" successfully!` +
+      const msg = `${result.imported} topic${result.imported !== 1 ? "s" : ""} added to "${selectedSkill!.skill}"` +
         (result.skipped > 0 ? ` (${result.skipped} already existed)` : "")
-      )
+      setSuccess(`✅ ${msg}`)
       setSelectedTopics(new Set())
+      toast.success("Topics imported!", { description: msg })
     },
+    onError: () => toast.error("Failed to import topics"),
   })
 
   // ── Topic selection helpers ────────────────────────────────────────────────

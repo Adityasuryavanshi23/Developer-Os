@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Trash2, ChevronDown, ChevronRight, BookOpen, Circle, Clock, CheckCircle2, Loader2, Library } from "lucide-react"
@@ -35,42 +36,59 @@ export default function LearningPage() {
 
   const addSkill = useMutation({
     mutationFn: (name: string) => skillService.create(name),
-    onSuccess: () => {
+    onSuccess: (_, name) => {
       queryClient.invalidateQueries({ queryKey: ["skills"] })
       setNewSkillName("")
       setAddingSkill(false)
       setSkillError("")
+      toast.success("Skill added", { description: name })
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setSkillError(msg ?? "Failed to add skill")
+      toast.error("Failed to add skill", { description: msg })
     },
   })
 
   const deleteSkill = useMutation({
     mutationFn: skillService.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["skills"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["skills"] })
+      toast.success("Skill removed")
+    },
+    onError: () => toast.error("Failed to delete skill"),
   })
 
   const addTopic = useMutation({
     mutationFn: ({ skillId, name }: { skillId: string; name: string }) =>
       topicService.create(skillId, name),
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["topics"] })
       setNewTopicName("")
       setAddingTopicFor(null)
+      toast.success("Topic added", { description: vars.name })
     },
+    onError: () => toast.error("Failed to add topic"),
   })
 
   const updateTopic = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Topic["status"] }) =>
       topicService.update(id, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["topics"] }),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ["topics"] })
+      const labels: Record<string, string> = { COMPLETED: "Marked completed", IN_PROGRESS: "Marked in progress", NOT_STARTED: "Marked not started" }
+      toast.success(labels[updated.status] ?? "Status updated")
+    },
+    onError: () => toast.error("Failed to update topic"),
   })
 
   const deleteTopic = useMutation({
     mutationFn: topicService.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["topics"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["topics"] })
+      toast.success("Topic deleted")
+    },
+    onError: () => toast.error("Failed to delete topic"),
   })
 
   // ── Helpers ──────────────────────────────────────────────────

@@ -1,16 +1,27 @@
 import { NavLink, useNavigate } from "react-router-dom"
+import { useState } from "react"
 import { toast } from "sonner"
 import { useAuthStore } from "../features/auth/auth.store"
 import {
   LayoutDashboard, BookOpen, CheckSquare,
-  RefreshCw, BarChart2, Code2, Settings, LogOut, X,
+  RefreshCw, BarChart2, Code2, Settings, LogOut, X, Bell, CalendarDays,
 } from "lucide-react"
 
-const navItems = [
+const ROUTINE_SEEN_KEY = "routine-visited"
+
+type NavItem = {
+  to: string
+  label: string
+  icon: React.ElementType
+  isNew?: boolean
+}
+
+const navItems: NavItem[] = [
   { to: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
   { to: "/learning",   label: "Learning",   icon: BookOpen },
   { to: "/tasks",      label: "Tasks",      icon: CheckSquare },
   { to: "/revision",   label: "Revision",   icon: RefreshCw },
+  { to: "/routine",    label: "My Routine", icon: CalendarDays, isNew: true },
   { to: "/analytics",  label: "Analytics",  icon: BarChart2 },
   { to: "/interview",  label: "Interview",  icon: Code2 },
   { to: "/settings",   label: "Settings",   icon: Settings },
@@ -18,6 +29,8 @@ const navItems = [
 
 interface SidebarProps {
   onClose?: () => void
+  inboxCount?: number
+  onInboxOpen?: () => void
 }
 
 // Get initials from full name — "Aditya Sur" → "AS", "John" → "J"
@@ -46,9 +59,12 @@ function avatarGradient(name?: string | null) {
   return AVATAR_GRADIENTS[idx]
 }
 
-export default function Sidebar({ onClose }: SidebarProps) {
+export default function Sidebar({ onClose, inboxCount = 0, onInboxOpen }: SidebarProps) {
   const navigate  = useNavigate()
   const { user, clearAuth } = useAuthStore()
+  const [routineSeen, setRoutineSeen] = useState<boolean>(() => {
+    try { return localStorage.getItem(ROUTINE_SEEN_KEY) === "1" } catch { return false }
+  })
 
   function handleLogout() {
     const name = user?.name?.split(" ")[0] ?? "User"
@@ -112,26 +128,51 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: "1rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={onClose}
-            style={({ isActive }) => ({
-              display: "flex", alignItems: "center", gap: "0.65rem",
-              padding: "0.6rem 0.75rem", borderRadius: 6,
-              color: isActive ? "#00c8ff" : "rgba(255,255,255,0.45)",
-              background: isActive ? "rgba(0,200,255,0.08)" : "transparent",
-              border: isActive ? "1px solid rgba(0,200,255,0.15)" : "1px solid transparent",
-              textDecoration: "none", fontSize: "0.875rem",
-              fontWeight: isActive ? 600 : 400,
-              transition: "all 0.15s",
-            })}
-          >
-            <Icon size={16} />
-            {label}
-          </NavLink>
-        ))}
+        {navItems.map(({ to, label, icon: Icon, isNew }) => {
+          const showBadge = isNew && !routineSeen
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => {
+                if (isNew && !routineSeen) {
+                  localStorage.setItem(ROUTINE_SEEN_KEY, "1")
+                  setRoutineSeen(true)
+                }
+                onClose?.()
+              }}
+              style={({ isActive }) => ({
+                display: "flex", alignItems: "center", gap: "0.65rem",
+                padding: "0.6rem 0.75rem", borderRadius: 6,
+                color: isActive ? "#00c8ff" : "rgba(255,255,255,0.45)",
+                background: isActive ? "rgba(0,200,255,0.08)" : "transparent",
+                border: isActive ? "1px solid rgba(0,200,255,0.15)" : "1px solid transparent",
+                textDecoration: "none", fontSize: "0.875rem",
+                fontWeight: isActive ? 600 : 400,
+                transition: "all 0.15s",
+              })}
+            >
+              <Icon size={16} />
+              <span style={{ flex: 1 }}>{label}</span>
+              {showBadge && (
+                <span style={{
+                  background: "linear-gradient(90deg, #a78bfa, #00c8ff)",
+                  borderRadius: 4,
+                  padding: "0.1rem 0.38rem",
+                  fontSize: "0.55rem",
+                  fontWeight: 700,
+                  color: "#020c1b",
+                  letterSpacing: "0.06em",
+                  lineHeight: 1.6,
+                  flexShrink: 0,
+                }}>
+                  NEW
+                </span>
+              )}
+            </NavLink>
+          )
+        })}
+
       </nav>
 
       {/* User + Logout */}
@@ -139,6 +180,33 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
         {/* Avatar + name row */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.7rem" }}>
+          {/* Bell icon */}
+          <button
+            onClick={onInboxOpen}
+            style={{
+              position: "relative", flexShrink: 0,
+              background: "none", border: "none",
+              cursor: "pointer",
+              color: "#fbbf24",
+              padding: "0.25rem", display: "flex", borderRadius: 6,
+              transition: "opacity 0.15s",
+              order: 999,
+              marginLeft: "auto",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            <Bell size={15} />
+            {inboxCount > 0 && (
+              <span style={{
+                position: "absolute", top: -3, right: -3,
+                width: 9, height: 9, borderRadius: "50%",
+                background: "#fbbf24",
+                border: "1.5px solid rgba(0,8,24,0.98)",
+                boxShadow: "0 0 6px rgba(251,191,36,0.6)",
+              }} />
+            )}
+          </button>
 
           {/* Avatar circle with initials */}
           <div style={{

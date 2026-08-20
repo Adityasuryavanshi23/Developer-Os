@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -116,26 +117,40 @@ export default function RevisionPage() {
       setForm({ topicId: "", priority: "MEDIUM", scheduledAt: todayStr() })
       setShowForm(false)
       setFormError("")
+      toast.success("Revision scheduled")
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setFormError(msg ?? "Failed to create revision")
+      toast.error("Failed to schedule revision", { description: msg })
     },
   })
 
   const completeRevision = useMutation({
     mutationFn: revisionService.complete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["revisions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["revisions"] })
+      toast.success("Revision completed!")
+    },
+    onError: () => toast.error("Failed to complete revision"),
   })
 
   const skipRevision = useMutation({
     mutationFn: revisionService.skip,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["revisions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["revisions"] })
+      toast.success("Revision skipped")
+    },
+    onError: () => toast.error("Failed to skip revision"),
   })
 
   const deleteRevision = useMutation({
     mutationFn: revisionService.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["revisions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["revisions"] })
+      toast.success("Revision deleted")
+    },
+    onError: () => toast.error("Failed to delete revision"),
   })
 
   // ── Filtered list ─────────────────────────────────────────────────────
@@ -575,15 +590,6 @@ export default function RevisionPage() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
-
-function StatPill({ label, value, color }: { label: string; value: number; color?: string }) {
-  return (
-    <div>
-      <div style={{ color: color ?? "#00c8ff", fontSize: "1.1rem", fontWeight: 700 }}>{value}</div>
-      <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.72rem" }}>{label}</div>
-    </div>
-  )
-}
 
 function RevActionBtn({ label, color, borderColor, bg, loading, onClick }: {
   label: string; color: string; borderColor: string; bg: string; loading: boolean; onClick: () => void

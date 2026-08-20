@@ -1,13 +1,22 @@
 import { Outlet } from "react-router-dom"
 import Sidebar from "./Sidebar"
+import NotificationModal from "./NotificationModal"
+import InboxDrawer from "./InboxDrawer"
 import { useState } from "react"
 import { Menu } from "lucide-react"
+import type { NotifItem } from "./notifTypes"
 
 // Main layout for all dashboard pages.
 // On desktop: fixed sidebar + scrollable main content.
 // On mobile: hidden sidebar with hamburger toggle.
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [inboxItems, setInboxItems] = useState<NotifItem[]>([])
+  const [inboxOpen, setInboxOpen] = useState(false)
+
+  function handleMoveToInbox(item: NotifItem) {
+    setInboxItems((prev) => [...prev.filter((n) => n.id !== item.id), item])
+  }
 
   return (
     // Full viewport — no scroll on this root container
@@ -31,7 +40,11 @@ export default function DashboardLayout() {
         className={`sidebar-wrapper${sidebarOpen ? " sidebar-open" : ""}`}
         style={{ height: "100vh", flexShrink: 0 }}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          onClose={() => setSidebarOpen(false)}
+          inboxCount={inboxItems.length}
+          onInboxOpen={() => setInboxOpen(true)}
+        />
       </div>
 
       {/* Main — takes remaining width, scrolls independently */}
@@ -63,6 +76,18 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Notification modal — checks revisions + tasks and pops once per day */}
+      <NotificationModal onMoveToInbox={handleMoveToInbox} />
+
+      {/* Inbox drawer — slides in from right */}
+      <InboxDrawer
+        open={inboxOpen}
+        items={inboxItems}
+        onClose={() => setInboxOpen(false)}
+        onClear={() => setInboxItems([])}
+        onRemove={(id) => setInboxItems((prev) => prev.filter((n) => n.id !== id))}
+      />
     </div>
   )
 }
